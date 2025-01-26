@@ -4,6 +4,7 @@ const FileRead = () => {
     const fileRef = useRef();
     const [fileContent, setFileContent] = useState([]); // Initialize as an array
     const [errorMessage, setErrorMessage] = useState(null);
+    const [currentUser , setCurrentUser ] = useState('');
 
     const handleFileChange = (e) => {
         e.preventDefault();
@@ -23,9 +24,15 @@ const FileRead = () => {
         reader.onload = (e) => {
             try {
                 const content = e.target.result;
-                const messages = parseChatContent(e.target.result);
-                console.log("messages", messages);
-                setFileContent(prev => messages); // Set directly to messages
+                const lines = content.split('\n');
+                const parsedMessages = lines.map(line => parseWhatsAppMessage(line)).filter(msg => msg !== null);
+                // console.log("Parsed messages:", parsedMessages);
+                if (parsedMessages.length > 0) {
+                    setFileContent(parsedMessages);
+                    const senders = [...new Set(parsedMessages.map(msg => msg.sender))];
+                    setCurrentUser (prev=>(senders[1] || senders[0]));
+                    
+                }
             } catch (e) {
                 setErrorMessage('Error reading file');
             }
@@ -38,45 +45,40 @@ const FileRead = () => {
         reader.readAsText(file);
     };
 
-    const parseChatContent = (content) => {
-        // const content = `26/12/24, 4:34 pm - Messages and calls are end-to-end encrypted. No one outside of this chat, not even WhatsApp, can read or listen to them. Tap to learn more. 
-        // 12/31/2021, 10:00 am - John Doe: Hello, how are you? 
-        // 12/31/2021, 10:01 pm - Hello: I'm good, thanks!`;
-
-        const messagePattern = /(\d{1,2}\/\d{1,2}\/\d{2,4}, \d{1,2}:\d{2} (am|pm) - )(.+?): (.+)/g;
-        let match;
-        const messages = [];
-
-        while ((match = messagePattern.exec(content)) != null) {
-            console.log("hello")
-            const timestamp = match[1];
-            const sender = match[3];
-            const message = match[4];
-            messages.push({ timestamp, sender, message });
+    const parseWhatsAppMessage = (line) => {
+        if (!line.trim()) return null;
+        const regex = /^(\d{2}\/\d{2}\/\d{2},\s+\d{1,2}:\d{2}\s+[ap]m)\s+-\s+([^:]+):\s*(.+)$/;
+        const match = line.match(regex);
+        
+        if (match) {
+            const [, datetime, sender, content] = match;
+            return {
+                timestamp: parseDateTime(datetime), // Use 'timestamp' for consistency
+                sender: sender.trim(),
+                content: content.trim(),
+                isMedia: content.includes('<Media omitted>'),
+                isEdited: content.includes('<This message was edited>')
+            };
+        } else {
+            const systemMessageRegex = /^(\d{2}\/\d{2}\/\d{2},\s+\d{1,2}:\d{2}\s+[ap]m)\s+-\s+([^:]+)$/;
+            const systemMatch = line.match(systemMessageRegex);
+            
+            if (systemMatch) {
+                const [, datetime, content] = systemMatch;
+                return {
+                    timestamp: parseDateTime(datetime),
+                    sender: 'System',
+                    content: content.trim(),
+                    isSystem: true
+                };
+            }
         }
+        return null;
+    };
 
-        console.log(messages);
-        return messages
-
-    }
-
-
-
-    // const parseChatContent = (content) => {
-    //     const messagePattern = /(\d{1,2}\/\d{1,2}\/\d{2,4}, \d{1,2}:\d{2} (AM|PM) - )(.+?): (.+)/g;
-    //     const messages = [];
-    //     let match;
-
-    //     while ((match = messagePattern.exec(content)) !== null) {
-    //         const timestamp = match[1];
-    //         const sender = match[3];
-    //         const message = match[4];
-    //         messages.push({ timestamp, sender, message });
-    //     }
-
-    //     console.log("Parsed messages:", messages); // Log the parsed messages
-    //     return messages;
-    // };
+    const parseDateTime = (dateTimeStr) => {
+        return dateTimeStr.trim();
+      };
 
     return (
         <>
@@ -84,7 +86,9 @@ const FileRead = () => {
                 <h1 className='font-bold'>File Read</h1>
                 <input type='file' accept='.txt' className='border p-5 flex justify-center items-center' ref={fileRef} />
                 <button onClick={handleFileChange} className='bg-blue-500 text-white p-2 rounded-md'>Read File</button>
-                <FileDisplay fileContent={fileContent} />
+                <div className='flex w-[100wh] m-34 flex-wrap justify-center items-center'>
+                    <FileDisplay fileContent={fileContent} />
+                </div>
                 {errorMessage && <div className='text-red-500'>{errorMessage}</div>}
             </div>
         </>
@@ -95,22 +99,24 @@ const FileDisplay = ({ fileContent }) => {
     return (
         <>
             {fileContent.length > 0 ? (
-                <div className='flex border justify-center items-center flex-col flex-wrap w-[100wh]'>
-                    <h2>File Content:</h2>
-                    <div>
+                <div className='flex flex-col items-center w-full'>
+                    <h2 className='text-lg font-bold mb-4'>File Content:</h2>
+                    <div className='flex flex-col w-full max-w-3xl'>
                         {fileContent.map((msg, index) => (
-                            <div key={index} className='message'>
-                                <span className='timestamp'>{msg.timestamp}</span>
-                                <span className={`sender ${msg.sender === 'You' ? 'you' : 'other'}`}>{msg}</span>
+                            <div key={index} className='flex flex-col border rounded-lg p-4 mb-4 shadow-md w-full'>
+                                <div className='timestamp text-gray-500 text-sm'>{msg.timestamp.toString()}</div>
+                                <div className={`sender font-semibold ${msg.sender === 'You' ? 'text-blue-600' : 'text-green-600'}`}>{msg.sender}</div>
+                                <div className='content mt-1'>{msg.content}</div>
                             </div>
                         ))}
                     </div>
                 </div>
             ) : (
-                <div>No file content to display</div>
+                <div className='text-gray-500'>No messages to display</div>
             )}
         </>
     );
 }
+
 
 export default FileRead;
