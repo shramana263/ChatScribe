@@ -12,17 +12,20 @@
 .chat-window{
   /* margin-top: 100px; */
   /* padding-top: 100px; */
-  overflow-y: scroll;
   width: 100%;
+  height: 90vh;
+  /* overflow: scroll; */
   display: flex;
   flex-flow: column;
   justify-content: center;
   align-items: center;
+  /* overflow-y: scroll; */
 }
 
 .chat-panel{
   /* margin-top: 500px; */
   overflow-y: scroll;
+  height: inherit;
   display: flex;
   width: inherit;
   flex-direction: column;
