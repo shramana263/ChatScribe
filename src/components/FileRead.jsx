@@ -105,11 +105,11 @@ const FileDisplay = ({ fileContent, user }) => {
             {fileContent.length > 0 ? (
                 <div className='chat-window'>
                     <h2 className='text-lg font-bold mb-4 chat-heading'>File Content:</h2>
-                    <div className='flex flex-col text-lg w-full max-w-3xl border p-5 bg-gray-100 rounded-lg shadow-md chat-panel'>
+                    <div className='chat-panel'>
                         {fileContent.map((message, index) => (
                             <div
                                 key={index}
-                                className={`flex flex-col  rounded-xl p-6 mb-4 shadow-md max-w-fit-content 
+                                className={`flex flex-col rounded-xl p-6 mb-4 shadow-md min-w-fit-content max-w-full 
                                 ${message.sender === user[1] ? 'bg-green-600 text-green-50 self-start' : 'bg-gray-200 text-gray-800 self-end'}`}
                             >
                                 <div className='timestamp text-sm'>{message.timestamp.toString()}</div>

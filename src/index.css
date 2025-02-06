@@ -1,18 +1,19 @@
 @import "tailwindcss";
 
 
-*{
+/* *{
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* scrollbar-width: 0px; */
-}
+  scrollbar-width: 0px; 
+} */
 
 
 .chat-window{
-  margin-top: 100px;
-  padding-top: 100px;
-  overflow: scroll;
+  /* margin-top: 100px; */
+  /* padding-top: 100px; */
+  overflow-y: scroll;
+  width: 100%;
   display: flex;
   flex-flow: column;
   justify-content: center;
@@ -20,9 +21,12 @@
 }
 
 .chat-panel{
-  margin-top: 500px;
-  overflow: scroll;
+  /* margin-top: 500px; */
+  overflow-y: scroll;
   display: flex;
+  width: inherit;
+  flex-direction: column;
+  flex-flow: column wrap;
   justify-content: center;
   align-items: center;
 }

@@ -4,7 +4,7 @@ import FileUpload from './components/FileUpload'
 
 const App = () => {
   return (
-    <div className='h-screen'>
+    <div className=''>
       {/* <h1 className='font-bold'>React App</h1> */}
       <FileRead/>
       {/* <FileUpload /> */}
