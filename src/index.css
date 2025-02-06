@@ -1,1 +1,29 @@
 @import "tailwindcss";
+
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  /* scrollbar-width: 0px; */
+}
+
+
+.chat-window{
+  margin-top: 100px;
+  padding-top: 100px;
+  overflow: scroll;
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.chat-panel{
+  margin-top: 500px;
+  overflow: scroll;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+

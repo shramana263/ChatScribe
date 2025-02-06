@@ -4,7 +4,7 @@ const FileRead = () => {
     const fileRef = useRef();
     const [fileContent, setFileContent] = useState([]); // Initialize as an array
     const [errorMessage, setErrorMessage] = useState(null);
-    const [currentUser , setCurrentUser ] = useState('');
+    const [user, setCurrentUser] = useState('');
 
     const handleFileChange = (e) => {
         e.preventDefault();
@@ -25,13 +25,13 @@ const FileRead = () => {
             try {
                 const content = e.target.result;
                 const lines = content.split('\n');
-                const parsedMessages = lines.map(line => parseWhatsAppMessage(line)).filter(msg => msg !== null);
+                const parsedMessages = lines.map(line => parseWhatsAppMessage(line)).filter(message => message != null);
                 // console.log("Parsed messages:", parsedMessages);
                 if (parsedMessages.length > 0) {
                     setFileContent(parsedMessages);
-                    const senders = [...new Set(parsedMessages.map(msg => msg.sender))];
-                    setCurrentUser (prev=>(senders[1] || senders[0]));
-                    
+                    const users = [...new Set(parsedMessages.map(msg => msg.sender))];
+                    setCurrentUser(prev => users);
+                    console.log("user-", user)
                 }
             } catch (e) {
                 setErrorMessage('Error reading file');
@@ -49,7 +49,7 @@ const FileRead = () => {
         if (!line.trim()) return null;
         const regex = /^(\d{2}\/\d{2}\/\d{2},\s+\d{1,2}:\d{2}\s+[ap]m)\s+-\s+([^:]+):\s*(.+)$/;
         const match = line.match(regex);
-        
+
         if (match) {
             const [, datetime, sender, content] = match;
             return {
@@ -62,7 +62,7 @@ const FileRead = () => {
         } else {
             const systemMessageRegex = /^(\d{2}\/\d{2}\/\d{2},\s+\d{1,2}:\d{2}\s+[ap]m)\s+-\s+([^:]+)$/;
             const systemMatch = line.match(systemMessageRegex);
-            
+
             if (systemMatch) {
                 const [, datetime, content] = systemMatch;
                 return {
@@ -78,16 +78,20 @@ const FileRead = () => {
 
     const parseDateTime = (dateTimeStr) => {
         return dateTimeStr.trim();
-      };
+    };
 
+    const handleDragOver = (event) => {
+        event.preventDefault();
+    };
+    
     return (
         <>
-            <div className='flex justify-center items-center flex-col gap-5'>
-                <h1 className='font-bold'>File Read</h1>
+            <div className='flex justify-center items-center flex-col gap-5 h-full w-full border'>
+                <h1 className='font-bold text-2xl '>Upload an exported WhatsApp chat (.txt) file to read</h1>
                 <input type='file' accept='.txt' className='border p-5 flex justify-center items-center' ref={fileRef} />
                 <button onClick={handleFileChange} className='bg-blue-500 text-white p-2 rounded-md'>Read File</button>
-                <div className='flex w-[100wh] m-34 flex-wrap justify-center items-center'>
-                    <FileDisplay fileContent={fileContent} />
+                <div className='flex w-[900px] flex-wrap justify-center items-center'>
+                    <FileDisplay fileContent={fileContent} user={user} />
                 </div>
                 {errorMessage && <div className='text-red-500'>{errorMessage}</div>}
             </div>
@@ -95,18 +99,22 @@ const FileRead = () => {
     );
 };
 
-const FileDisplay = ({ fileContent }) => {
+const FileDisplay = ({ fileContent, user }) => {
     return (
         <>
             {fileContent.length > 0 ? (
-                <div className='flex flex-col items-center w-full'>
-                    <h2 className='text-lg font-bold mb-4'>File Content:</h2>
-                    <div className='flex flex-col w-full max-w-3xl'>
-                        {fileContent.map((msg, index) => (
-                            <div key={index} className='flex flex-col border rounded-lg p-4 mb-4 shadow-md w-full'>
-                                <div className='timestamp text-gray-500 text-sm'>{msg.timestamp.toString()}</div>
-                                <div className={`sender font-semibold ${msg.sender === 'You' ? 'text-blue-600' : 'text-green-600'}`}>{msg.sender}</div>
-                                <div className='content mt-1'>{msg.content}</div>
+                <div className='chat-window'>
+                    <h2 className='text-lg font-bold mb-4 chat-heading'>File Content:</h2>
+                    <div className='flex flex-col text-lg w-full max-w-3xl border p-5 bg-gray-100 rounded-lg shadow-md chat-panel'>
+                        {fileContent.map((message, index) => (
+                            <div
+                                key={index}
+                                className={`flex flex-col  rounded-xl p-6 mb-4 shadow-md max-w-fit-content 
+                                ${message.sender === user[1] ? 'bg-green-600 text-green-50 self-start' : 'bg-gray-200 text-gray-800 self-end'}`}
+                            >
+                                <div className='timestamp text-sm'>{message.timestamp.toString()}</div>
+                                <div className={`sender font-semibold`}>{message.sender}</div>
+                                <div className='content mt-1'>{message.content}</div>
                             </div>
                         ))}
                     </div>
